@@ -1,33 +1,28 @@
-# The official PHP image.
-php:
-    image: php:apache
-    container_name: php
-    ports:
-        - "8080:80"
+version: '3'
+
+services:
+  db:
+    image: mysql:latest
     volumes:
-        # - ./apache2/default:/etc/apache2/sites-available/default
-        # - ./apache2/default:/etc/apache2/sites-enabled/default
-        - ./logs/apache2-error.log:/var/log/apache2/error.log
-        - ./logs/apache2-access.log:/var/log/apache2/access.log
-        # - ./public:/var/www/html
-        - /var/www/html/vhosts/bnspro/public_html:/var/www/html
-
-mysql:
-  image: mysql:latest
-  container_name: mysql
-  environment:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
     MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: ins_app
+    MYSQL_USER: root
+    MYSQL_PASSWORD: root
 
-phpmyadmin:
-  image: phpmyadmin/phpmyadmin
-  container_name: phpmyadmin
-  restart: always
-  links:
-    - mysql
-  ports:
-    - 8183:80
-  environment:
-    PMA_HOST: mysql
-    PMA_USER: root
-    PMA_PASSWORD: root
-    PMA_ARBITRARY: 1
+  web:
+    depends_on:
+    - db
+    build: .
+    ports:
+      - "8081:80"
+    restart: always
+    environment:
+    DB_HOST: db:3306
+    DB_USER: root
+    DB_PASSWORD: root
+
+  volumes:
+    db_data:
